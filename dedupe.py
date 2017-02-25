@@ -27,12 +27,13 @@ LICENSE
 	Copyright 2017 Doug McGeehan - GNU GPLv3
 
 """
+import collections
+import pprint
 
 __appname__ = "dedupe"
 __author__ = "Doug McGeehan"
 __version__ = "0.0pre0"
 __license__ = "GNU GPLv3"
-
 
 import argparse
 from datetime import datetime
@@ -43,10 +44,30 @@ import logging
 logger = logging.getLogger(__appname__)
 
 
+def find_files_and_sizes(directory):
+    file_sizes = collections.defaultdict(list)
+    for directory, _, filenames in os.walk(directory):
+        for f in filenames:
+            path = os.path.join(directory, f)
+
+            # obtain the file size
+            size = os.path.getsize(path)
+            file_sizes[size].append(path)
+    for k in file_sizes:
+        print(k)
+        pprint.pprint(file_sizes[k])
+    return file_sizes
+
+
 def main(args):
     # partition files under the specified directories by their file sizes
+    filesizes = collections.defaultdict(list)
     for directory in args.paths:
-        pass
+        print('-'*80)
+        print(directory + ':')
+        filesizes.update(
+            find_files_and_sizes(directory)
+        )
 
     # store dictionary in a sqlite db
 
@@ -119,7 +140,7 @@ if __name__ == '__main__':
         for arg in vars(args):
             value = getattr(args, arg)
             logger.debug('\t{argument_key}:\t{value}'.format(argument_key=arg,
-                                                           value=value))
+                                                             value=value))
 
         logger.debug(start_time)
 
