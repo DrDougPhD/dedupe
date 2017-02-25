@@ -62,7 +62,6 @@ def main(args):
     # re-partition by file size and duplication status
     # calculate a checksum on representative files in duplicate partitions
     # store the first 512 bytes of singleton partitions in the database
-    pass
 
 
 def existing_abspath(path):
