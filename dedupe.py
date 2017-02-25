@@ -29,6 +29,7 @@ LICENSE
 """
 import src.filesystem
 import src.utils
+import src.db
 import logging
 logger = src.setup_logger(name=__name__, verbosity=True)
 
@@ -51,7 +52,7 @@ def main(args):
     filesizes = src.filesystem.find_file_sizes(within=args.paths)
 
     # store dictionary in a sqlite db
-    #src.db.insert_files(filesizes)
+    src.db.insert_files(filesizes, into=args.db)
 
     # remove singleton partitions (files that have a unique file size)
     potential_duplicates = src.utils.filter_singletons(filesizes)
@@ -81,6 +82,11 @@ def get_arguments():
     parser.add_argument('paths', metavar='PATH', nargs='+',
                         type=existing_abspath,
                         help='the path to which files will be checked')
+    parser.add_argument('-d', '--db', metavar='DATABASE_FILE',
+                        default='dedupe.py.db',
+                        help='the path to the database '
+                             '(default: $cwd/dedupe.py.db)')
+
     args = parser.parse_args()
     return args
 
