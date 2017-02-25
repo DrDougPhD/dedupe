@@ -27,8 +27,8 @@ LICENSE
 	Copyright 2017 Doug McGeehan - GNU GPLv3
 
 """
-import src
 import src.filesystem
+import src.utils
 import logging
 logger = src.setup_logger(name=__name__, verbosity=True)
 
