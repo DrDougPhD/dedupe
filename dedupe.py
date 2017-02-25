@@ -27,8 +27,8 @@ LICENSE
 	Copyright 2017 Doug McGeehan - GNU GPLv3
 
 """
-import src
 import src.filesystem
+import src.utils
 import logging
 logger = src.setup_logger(name=__name__, verbosity=True)
 
@@ -54,7 +54,7 @@ def main(args):
     #src.db.insert_files(filesizes)
 
     # remove singleton partitions (files that have a unique file size)
-    #potential_duplicates = src.utils.filter_singletons(filesizes)
+    potential_duplicates = src.utils.filter_singletons(filesizes)
 
     # for each partition, check for duplicates within
     # re-partition by file size and duplication status
