@@ -62,17 +62,13 @@ def find_files_and_sizes(directory):
 
 def main(args):
     # partition files under the specified directories by their file sizes
-    filesizes = collections.defaultdict(list)
-    for directory in args.paths:
-        print('-'*80)
-        print(directory + ':')
-        filesizes.update(
-            find_files_and_sizes(directory)
-        )
+    filesizes = src.filesystem.find_file_sizes(within=args.paths)
 
     # store dictionary in a sqlite db
+    src.db.insert_files(filesizes)
 
     # remove singleton partitions (files that have a unique file size)
+    potential_duplicates = src.utils.filter_singletons(filesizes)
 
     # for each partition, check for duplicates within
     # re-partition by file size and duplication status
