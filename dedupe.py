@@ -28,6 +28,7 @@ LICENSE
 
 """
 import src
+import src.filesystem
 import logging
 logger = src.setup_logger(name=__name__, verbosity=True)
 
@@ -45,30 +46,15 @@ import sys
 import os
 
 
-def find_files_and_sizes(directory):
-    file_sizes = collections.defaultdict(list)
-    for directory, _, filenames in os.walk(directory):
-        for f in filenames:
-            path = os.path.join(directory, f)
-
-            # obtain the file size
-            size = os.path.getsize(path)
-            file_sizes[size].append(path)
-    for k in file_sizes:
-        print(k)
-        pprint.pprint(file_sizes[k])
-    return file_sizes
-
-
 def main(args):
     # partition files under the specified directories by their file sizes
     filesizes = src.filesystem.find_file_sizes(within=args.paths)
 
     # store dictionary in a sqlite db
-    src.db.insert_files(filesizes)
+    #src.db.insert_files(filesizes)
 
     # remove singleton partitions (files that have a unique file size)
-    potential_duplicates = src.utils.filter_singletons(filesizes)
+    #potential_duplicates = src.utils.filter_singletons(filesizes)
 
     # for each partition, check for duplicates within
     # re-partition by file size and duplication status

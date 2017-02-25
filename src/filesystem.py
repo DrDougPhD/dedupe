@@ -1,8 +1,36 @@
 import os
 import logging
 import collections
+import pprint
 
 logger = logging.getLogger(__name__)
+
+
+def find_file_sizes(within):
+    if isinstance(within, str):
+        within = [within]
+
+    elif isinstance(within, list):
+        pass
+
+    else:
+        raise ValueError('Supplied directories is an unexpected format'
+                         ' -- str or list of strs expected, but received'
+                         ' {}'.format(type(within)))
+
+    found_files = collections.defaultdict(list)
+    for search_directory in within:
+        finder = FileFinder(within=search_directory)
+        files_within_dir = finder.find()
+        for filesize in files_within_dir:
+            found_files[filesize].extend(files_within_dir[filesize])
+    logger.info('Search complete.')
+
+    for filesize in found_files:
+        logger.debug('Files of size {} bytes:'.format(filesize))
+        logger.debug(pprint.pformat(found_files[filesize]))
+        logger.debug('.'*40)
+    return found_files
 
 
 class FileFinder(object):
@@ -24,6 +52,7 @@ class FileFinder(object):
     def find(self):
         for filepath in self._next_filepath():
             filesize = os.path.getsize(filepath)
+            logger.debug('{0: >15} -> "{1}"'.format(filesize, filepath))
             self.filesizes_to_files[filesize]\
                 .append(filepath)
 
