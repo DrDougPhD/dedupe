@@ -3,7 +3,7 @@
 """
 SYNOPSIS
 
-	python dedupe.py [-h,--help] [-v,--verbose]
+	python dedupe.py [-h,--help] [-v,--verbose] PATH [PATH ...]
 
 
 DESCRIPTION
@@ -27,6 +27,10 @@ LICENSE
 	Copyright 2017 Doug McGeehan - GNU GPLv3
 
 """
+import src
+import logging
+logger = src.setup_logger(name=__name__, verbosity=True)
+
 import collections
 import pprint
 
@@ -39,9 +43,6 @@ import argparse
 from datetime import datetime
 import sys
 import os
-import logging
-
-logger = logging.getLogger(__appname__)
 
 
 def find_files_and_sizes(directory):
@@ -80,34 +81,6 @@ def main(args):
     pass
 
 
-def setup_logger(args):
-    logger.setLevel(logging.DEBUG)
-    # create file handler which logs even debug messages
-    # todo: place them in a log directory, or add the time to the log's
-    # filename, or append to pre-existing log
-    log_file = os.path.join('/tmp', __appname__ + '.log')
-    fh = logging.FileHandler(log_file)
-    fh.setLevel(logging.DEBUG)
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-
-    if args.verbose:
-        ch.setLevel(logging.DEBUG)
-    else:
-        ch.setLevel(logging.INFO)
-
-    # create formatter and add it to the handlers
-    fh.setFormatter(logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    ))
-    ch.setFormatter(logging.Formatter(
-        '%(levelname)s - %(message)s'
-    ))
-    # add the handlers to the logger
-    logger.addHandler(fh)
-    logger.addHandler(ch)
-
-
 def existing_abspath(path):
     if os.path.exists(path):
         return os.path.abspath(path)
@@ -135,8 +108,13 @@ if __name__ == '__main__':
         start_time = datetime.now()
 
         args = get_arguments()
-        setup_logger(args)
+        if args.verbose:
+            logger.setLevel(logging.DEBUG)
+        else:
+            logger.setLevel(logging.INFO)
+
         logger.debug('Command-line arguments:')
+
         for arg in vars(args):
             value = getattr(args, arg)
             logger.debug('\t{argument_key}:\t{value}'.format(argument_key=arg,
