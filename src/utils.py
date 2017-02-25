@@ -7,7 +7,7 @@ def filter_singletons(filesizes):
     sizes_to_filter = filter(lambda key: len(filesizes[key]) <= 1,
                              filesizes)
 
-    for size in sizes_to_filter:
+    for size in list(sizes_to_filter):
         del filesizes[size]
 
     logger.debug('='*80)

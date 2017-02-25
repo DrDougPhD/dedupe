@@ -27,24 +27,23 @@ LICENSE
 	Copyright 2017 Doug McGeehan - GNU GPLv3
 
 """
-import src.filesystem
-import src.utils
-import src.db
-import logging
-logger = src.setup_logger(name=__name__, verbosity=True)
 
-import collections
-import pprint
+import argparse
+from datetime import datetime
+import sys
+import os
+import logging
+import src.utils
+logger = src.setup_logger(name=__name__, verbosity=True)
 
 __appname__ = "dedupe"
 __author__ = "Doug McGeehan"
 __version__ = "0.0pre0"
 __license__ = "GNU GPLv3"
 
-import argparse
-from datetime import datetime
-import sys
-import os
+import src.filesystem
+import src.db
+import src.duplicates
 
 
 def main(args):
@@ -52,12 +51,14 @@ def main(args):
     filesizes = src.filesystem.find_file_sizes(within=args.paths)
 
     # store dictionary in a sqlite db
-    src.db.insert_files(filesizes, into=args.db)
+    db = src.db.insert_files(filesizes, into=args.db)
 
     # remove singleton partitions (files that have a unique file size)
     potential_duplicates = src.utils.filter_singletons(filesizes)
 
     # for each partition, check for duplicates within
+    duplicate_partitions = src.duplicates.repartition(filesize_partitions=potential_duplicates)
+
     # re-partition by file size and duplication status
     # calculate a checksum on representative files in duplicate partitions
     # store the first 512 bytes of singleton partitions in the database

@@ -13,12 +13,13 @@ from sqlalchemy import String
 import logging
 logger = logging.getLogger(__name__)
 
+
 def insert_files(filesizes, into):
     db_filepath = os.path.abspath(into)
     logger.debug('.'*80)
     logger.debug('Adding file and bytesizes to database')
 
-    engine = create_engine('sqlite:///{}'.format(db_filepath), echo=True)
+    engine = create_engine('sqlite:///{}'.format(db_filepath), echo=False)
     if not os.path.exists(into):
         logger.debug("{} doesn't exist, and will be initialized".format(into))
         Base.metadata.create_all(engine)
@@ -27,11 +28,17 @@ def insert_files(filesizes, into):
     session = Session()
 
     for filesize in filesizes:
-        logger.debug('Adding {}-byte files'.format(filesize))
-        session.add_all([
-            FileInformation(path=filepath, bytesize=filesize)
-            for filepath in filesizes[filesize]
-        ])
+        logger.debug('Adding {0}-byte files ({1} files)'.format(filesize,
+                                                                len(filesizes[filesize])))
+        for path in filesizes[filesize]:
+            possibly_non_existent_record = session.query(FileInformation) \
+                                                  .filter_by(path=path)\
+                                                  .first()
+            if possibly_non_existent_record is None:
+                session.add(FileInformation(path=path, bytesize=filesize))
+            else:
+                if possibly_non_existent_record.bytesize != filesize:
+                    possibly_non_existent_record.bytesize = filesize
 
     session.commit()
     return session
@@ -40,8 +47,7 @@ def insert_files(filesizes, into):
 class FileInformation(Base):
      __tablename__ = 'files'
 
-     id = Column(Integer, primary_key=True)
-     path = Column(String, nullable=False)
+     path = Column(String, primary_key=True, nullable=False)
      bytesize = Column(Integer, nullable=False)
      checksum = Column(String)
      first_block = Column(Binary)
@@ -65,5 +71,10 @@ if __name__ == '__main__':
 
     queried_file = session.query(FileInformation)\
                           .filter_by(path=sample_file_path).first()
-    print(queried_file)
+    print('File found: {}'.format(queried_file))
 
+    non_existing_file = session.query(FileInformation) \
+                               .filter_by(path='/file/doesnt/exist').first()
+    print("This file doesn't exist: {}".format(non_existing_file))
+
+    print(queried_file)
