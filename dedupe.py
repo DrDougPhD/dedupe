@@ -59,10 +59,7 @@ def main(args):
     # for each partition, check for duplicates within
     duplicate_partitions = src.duplicates.repartition(filesize_partitions=potential_duplicates)
 
-    # re-partition by file size and duplication status
-    # calculate a checksum on representative files in duplicate partitions
-    # store the first 512 bytes of singleton partitions in the database
-
+    src.db.update_with_checksums(duplicate_partitions, db)
 
 def existing_abspath(path):
     if os.path.exists(path):

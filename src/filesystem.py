@@ -77,7 +77,7 @@ class File(object):
                 if not data:
                     break
                 self.hasher.update(data)
-        self.hash = self.hasher.intdigest()
+        self.hash = self.hasher.hexdigest()
         return self.hash
 
     def __str__(self):

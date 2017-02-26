@@ -1,5 +1,6 @@
 import os
 
+from sqlalchemy import BigInteger
 from sqlalchemy import Binary
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -43,13 +44,23 @@ def insert_files(filesizes, into):
     session.commit()
     return session
 
+def update_with_checksums(partitions, db):
+    for checksum, files in partitions.items():
+        for f in files:
+            current_record = db.query(FileInformation) \
+                               .filter_by(path=f.path) \
+                               .first()
+            current_record.checksum = checksum
+
+    db.commit()
+
 
 class FileInformation(Base):
      __tablename__ = 'files'
 
      path = Column(String, primary_key=True, nullable=False)
      bytesize = Column(Integer, nullable=False)
-     checksum = Column(Integer)
+     checksum = Column(String)
      first_block = Column(Binary)
 
      def __repr__(self):
