@@ -48,6 +48,9 @@ class FileFinder(object):
         for directory, _, filenames in os.walk(self.directory_tree_root):
             for f in filenames:
                 path = os.path.join(directory, f)
+                if os.path.islink(path):
+                    continue
+
                 logger.info('File:\t{}'.format(path))
                 yield path
 
