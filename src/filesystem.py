@@ -3,6 +3,8 @@ import logging
 import collections
 import pprint
 
+import xxhash
+
 logger = logging.getLogger(__name__)
 
 
@@ -62,14 +64,30 @@ class File(object):
     def __init__(self, path):
         self.path = path
         self.size = self._get_size(path)
+        self.hasher = xxhash.xxh64()
+        self.hash = None
 
     def _get_size(self, path):
         return os.path.getsize(path)
+
+    def checksum(self):
+        with open(self.path, 'rb') as f:
+            while True:
+                data = f.read(4096)
+                if not data:
+                    break
+                self.hasher.update(data)
+        self.hash = self.hasher.intdigest()
+        return self.hash
 
     def __str__(self):
         return self.path
 
     def __repr__(self):
+        if self.hash:
+            return '<File(checksum={0}, path="{1}")>'.format(
+                self.hash, self.path)
+
         return '<File(path="{}")>'.format(self.path)
 
     def __lt__(self, other):

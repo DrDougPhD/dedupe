@@ -22,7 +22,7 @@ class DuplicatePartitioner(object):
         self._compute_checksums()
 
 
-    def _compare_file_pairs(self):
+    def _compute_checksums(self):
         for file in self.files:
             checksum = file.checksum()
             self.checksum_to_files[checksum].append(file)

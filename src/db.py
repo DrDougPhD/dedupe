@@ -49,7 +49,7 @@ class FileInformation(Base):
 
      path = Column(String, primary_key=True, nullable=False)
      bytesize = Column(Integer, nullable=False)
-     checksum = Column(String)
+     checksum = Column(Integer)
      first_block = Column(Binary)
 
      def __repr__(self):
