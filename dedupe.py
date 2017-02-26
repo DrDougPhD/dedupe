@@ -59,7 +59,24 @@ def main(args):
     # for each partition, check for duplicates within
     duplicate_partitions = src.duplicates.repartition(filesize_partitions=potential_duplicates)
 
+    # add checksums to the database
     src.db.update_with_checksums(duplicate_partitions, db)
+
+    # filter out singleton partitions (again)
+    only_duplicates = src.utils.filter_singletons(duplicate_partitions)
+
+    partitions_sorted_by_size_reduction = []
+    for checksum, files in only_duplicates.items():
+        redundant_occupied_size = files[0].size * (len(files)-1)
+        partitions_sorted_by_size_reduction.append((redundant_occupied_size,
+                                                    files))
+
+    partitions_sorted_by_size_reduction.sort(key=lambda x: x[0], reverse=True)
+    for potential_savings, partition in partitions_sorted_by_size_reduction:
+        print('# {} bytes in potential savings'.format(potential_savings))
+        for f in partition:
+            print('{0.size}\t{0.hash}\t{0.path}'.format(f))
+
 
 def existing_abspath(path):
     if os.path.exists(path):
