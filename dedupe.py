@@ -33,6 +33,10 @@ from datetime import datetime
 import sys
 import os
 import logging
+
+from hurry.filesize import si
+from hurry.filesize import size
+
 import src.utils
 logger = src.setup_logger(name=__name__, verbosity=True)
 
@@ -73,7 +77,8 @@ def main(args):
 
     partitions_sorted_by_size_reduction.sort(key=lambda x: x[0], reverse=True)
     for potential_savings, partition in partitions_sorted_by_size_reduction:
-        print('# {} bytes in potential savings'.format(potential_savings))
+        print('# {} in potential savings'.format(size(potential_savings,
+                                                      system=si)))
         for f in partition:
             print('{0.size}\t{0.hash}\t{0.path}'.format(f))
 
