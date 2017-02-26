@@ -30,12 +30,12 @@ def insert_files(filesizes, into):
     for filesize in filesizes:
         logger.debug('Adding {0}-byte files ({1} files)'.format(filesize,
                                                                 len(filesizes[filesize])))
-        for path in filesizes[filesize]:
-            possibly_non_existent_record = session.query(FileInformation) \
-                                                  .filter_by(path=path)\
+        for file in filesizes[filesize]:
+            possibly_non_existent_record = session.query(FileInformation)\
+                                                  .filter_by(path=file.path)\
                                                   .first()
             if possibly_non_existent_record is None:
-                session.add(FileInformation(path=path, bytesize=filesize))
+                session.add(FileInformation(path=file.path, bytesize=filesize))
             else:
                 if possibly_non_existent_record.bytesize != filesize:
                     possibly_non_existent_record.bytesize = filesize

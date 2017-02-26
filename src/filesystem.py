@@ -51,9 +51,26 @@ class FileFinder(object):
 
     def find(self):
         for filepath in self._next_filepath():
-            filesize = os.path.getsize(filepath)
-            logger.debug('{0: >15} -> "{1}"'.format(filesize, filepath))
-            self.filesizes_to_files[filesize]\
-                .append(filepath)
+            file = File(path=filepath)
+            logger.debug('{0: >15} -> "{1}"'.format(file.size, file.path))
+            self.filesizes_to_files[file.size]\
+                .append(file)
 
         return self.filesizes_to_files
+
+class File(object):
+    def __init__(self, path):
+        self.path = path
+        self.size = self._get_size(path)
+
+    def _get_size(self, path):
+        return os.path.getsize(path)
+
+    def __str__(self):
+        return self.path
+
+    def __repr__(self):
+        return '<File(path="{}")>'.format(self.path)
+
+    def __lt__(self, other):
+        return self.path < other.path
