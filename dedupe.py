@@ -75,13 +75,17 @@ def main(args):
         partitions_sorted_by_size_reduction.append((redundant_occupied_size,
                                                     files))
 
+    potential_savings_total = 0
     partitions_sorted_by_size_reduction.sort(key=lambda x: x[0], reverse=True)
     for potential_savings, partition in partitions_sorted_by_size_reduction:
+        potential_savings_total += potential_savings
         print('# {} in potential savings'.format(size(potential_savings,
                                                       system=si)))
         for f in partition:
             print('{0.size}\t{0.hash}\t{0.path}'.format(f))
 
+    print('='*80)
+    print('# {} in total potential savings'.format(size(potential_savings_total, system=si)))
 
 def existing_abspath(path):
     if os.path.exists(path):
