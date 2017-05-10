@@ -64,7 +64,7 @@ def main(args):
     potential_duplicates = dedupe.utils.filter_singletons(filesizes)
 
     # for each partition, check for duplicates within
-    logger.info('Finding duplicates within size-partitions')
+    logger.info('Finding duplicates within size-partitions by checksum')
     duplicate_partitions = dedupe.duplicates.repartition(
         filesize_partitions=potential_duplicates)
 
