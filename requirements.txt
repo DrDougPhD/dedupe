@@ -1,3 +1,4 @@
 SQLAlchemy==1.1.5
 xxhash==1.0.0
 hurry.filesize==0.9
+progressbar2==3.20.0
