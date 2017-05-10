@@ -138,9 +138,7 @@ def main(args):
 
                 cumulative_potential_savings += potential_savings
 
-                preserved_file = partition.pop(0)
-                script.write('#'*80 + '\n')
-                script.write('# Preserving {}\n'.format(preserved_file.path))
+                script.write('#'*120 + '\n')
                 script.write('# {} in potential savings\n'.format(
                     humanfriendly.format_size(potential_savings, binary=True)))
                 script.write('# {} in cumulative savings\n'.format(
@@ -148,7 +146,9 @@ def main(args):
                                               binary=True)))
 
                 for f in partition:
-                    script.write('rm "{0.path}"\n'.format(f))
+                    script.write('# rm "{0.path}"\n'.format(f))
+                    
+                script.write('\n')
 
     # if the user specified a symlink script, then create a script that will
     # remove duplicates of a file and create a hard link
