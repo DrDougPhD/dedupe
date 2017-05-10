@@ -60,6 +60,7 @@ def insert_files(filesizes, into):
     session.commit()
     return session
 
+
 def update_with_checksums(partitions, db):
     for checksum, files in partitions.items():
         for f in files:
@@ -83,6 +84,7 @@ class FileInformation(Base):
         return "<File(size={size}, path={path})>".format(
             size=self.bytesize, path=self.path
         )
+
 
 if __name__ == '__main__':
     engine = create_engine('sqlite:///:memory:', echo=True)
