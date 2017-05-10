@@ -65,7 +65,8 @@ def main(args):
 
     # for each partition, check for duplicates within
     logger.info('Finding duplicates within size-partitions')
-    duplicate_partitions = dedupe.duplicates.repartition(filesize_partitions=potential_duplicates)
+    duplicate_partitions = dedupe.duplicates.repartition(
+        filesize_partitions=potential_duplicates)
 
     # add checksums to the database
     logger.info('Adding checksums to database')
