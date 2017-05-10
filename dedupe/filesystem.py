@@ -24,14 +24,17 @@ def find_file_sizes(within):
     for search_directory in within:
         finder = FileFinder(within=search_directory)
         files_within_dir = finder.find()
-        for filesize in files_within_dir:
-            found_files[filesize].extend(files_within_dir[filesize])
+
+        for filesize, files_matching_size in files_within_dir.items():
+            found_files[filesize].extend(files_matching_size)
+
     logger.info('Search complete.')
 
     for filesize in found_files:
         logger.debug('Files of size {} bytes:'.format(filesize))
         logger.debug(pprint.pformat(found_files[filesize]))
         logger.debug('.'*40)
+
     return found_files
 
 
@@ -51,7 +54,6 @@ class FileFinder(object):
                 if os.path.islink(path):
                     continue
 
-                logger.info('File:\t{}'.format(path))
                 yield path
 
     def find(self):
