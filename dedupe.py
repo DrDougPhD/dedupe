@@ -37,37 +37,43 @@ import logging
 from hurry.filesize import si
 from hurry.filesize import size
 
-import src.utils
-logger = src.setup_logger(name=__name__, verbosity=True)
+import dedupe.utils
+logger = dedupe.setup_logger(name=__name__, verbosity=True)
 
 __appname__ = "dedupe"
 __author__ = "Doug McGeehan"
 __version__ = "0.0pre0"
 __license__ = "GNU GPLv3"
 
-import src.filesystem
-import src.db
-import src.duplicates
+import dedupe.filesystem
+import dedupe.db
+import dedupe.duplicates
 
 
 def main(args):
     # partition files under the specified directories by their file sizes
-    filesizes = src.filesystem.find_file_sizes(within=args.paths)
+    logger.info('Walking directory and collecting filenames and sizes')
+    filesizes = dedupe.filesystem.find_file_sizes(within=args.paths)
 
     # store dictionary in a sqlite db
-    db = src.db.insert_files(filesizes, into=args.db)
+    logger.info('Inserting files into database')
+    db = dedupe.db.insert_files(filesizes, into=args.db)
 
     # remove singleton partitions (files that have a unique file size)
-    potential_duplicates = src.utils.filter_singletons(filesizes)
+    logger.info('Filtering out singleton size-partitions')
+    potential_duplicates = dedupe.utils.filter_singletons(filesizes)
 
     # for each partition, check for duplicates within
-    duplicate_partitions = src.duplicates.repartition(filesize_partitions=potential_duplicates)
+    logger.info('Finding duplicates within size-partitions')
+    duplicate_partitions = dedupe.duplicates.repartition(filesize_partitions=potential_duplicates)
 
     # add checksums to the database
-    src.db.update_with_checksums(duplicate_partitions, db)
+    logger.info('Adding checksums to database')
+    dedupe.db.update_with_checksums(duplicate_partitions, db)
 
     # filter out singleton partitions (again)
-    only_duplicates = src.utils.filter_singletons(duplicate_partitions)
+    logger.info('Filtering out singleton checksum-partitions')
+    only_duplicates = dedupe.utils.filter_singletons(duplicate_partitions)
 
     partitions_sorted_by_size_reduction = []
     for checksum, files in only_duplicates.items():
