@@ -1,47 +1,65 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 SYNOPSIS
 
-	python dedupe.py [-h,--help] [-v,--verbose] PATH [PATH ...]
+    python dedupe.py [-h] [-v] [-d DATABASE_FILE] [-o REPORT_FILEPATH]
+                     [-s REMOVAL_SCRIPT] [-l HARDLINK_SCRIPT]
+                     PATH [PATH ...]
 
 
 DESCRIPTION
 
-	Concisely describe the purpose this script serves.
+    Identify duplicate files that reside in a directory.
 
 
 ARGUMENTS
 
-	-h, --help		show this help message and exit
-	-v, --verbose		verbose output
+    -h, --help                     show this help message and exit
+    -v, --verbose                  verbose output
+    -d, --db                       the path to the database
+                                   (default: $cwd/dedupe.py.db)
+    -o, --output-to-file           write duplicate file consumption analysis to
+                                    file (default: stdout)
+    -s, --create-remove-script     create script for removing duplicate files
+                                    (default: no script)
+    -l, --create-hardlink-script   create script to remove duplicate files and 
+                                    convert them to hard links. Linux only.
+                                    (default: no script)
 
 
 AUTHOR
 
-	Doug McGeehan
+    Doug McGeehan <doug.mcgeehan@mst.edu>
 
+
+DEPENDENCIES
+
+    SQLAlchemy
+    xxhash
+    humanfriendly
+    progressbar2
+    
 
 LICENSE
 
-	Copyright 2017 Doug McGeehan - GNU GPLv3
+    Copyright 2017 Doug McGeehan - GNU GPLv3
 
 """
+
+import dedupe.utils
+logger = dedupe.setup_logger(name=__name__, verbosity=True)
 
 import argparse
 from datetime import datetime
 import sys
 import os
 import logging
-
 import humanfriendly
-
-import dedupe.utils
-logger = dedupe.setup_logger(name=__name__, verbosity=True)
 
 __appname__ = "dedupe"
 __author__ = "Doug McGeehan"
-__version__ = "0.0pre0"
+__version__ = "0.1.0"
 __license__ = "GNU GPLv3"
 
 import dedupe.filesystem
@@ -121,6 +139,7 @@ def main(args):
                 cumulative_potential_savings += potential_savings
 
                 preserved_file = partition.pop(0)
+                script.write('#'*80 + '\n')
                 script.write('# Preserving {}\n'.format(preserved_file.path))
                 script.write('# {} in potential savings\n'.format(
                     humanfriendly.format_size(potential_savings, binary=True)))
@@ -142,6 +161,7 @@ def main(args):
                 cumulative_potential_savings += potential_savings
 
                 preserved_file = partition.pop(0)
+                script.write('#' * 80 + '\n')
                 script.write('# Preserving {}\n'.format(preserved_file.path))
                 script.write('# {} in potential savings\n'.format(
                     humanfriendly.format_size(potential_savings, binary=True)))
