@@ -62,12 +62,24 @@ def insert_files(filesizes, into):
 
 
 def update_with_checksums(partitions, db):
+
+    file_count = sum([len(files_with_checksum)
+                      for files_with_checksum in partitions.values()])
+
+    bar = progressbar.ProgressBar(max_value=file_count)
+    i = 0
     for checksum, files in partitions.items():
         for f in files:
             current_record = db.query(FileInformation) \
                                .filter_by(path=f.path) \
                                .first()
             current_record.checksum = checksum
+
+            bar.update(i)
+            i += 1
+
+            if i % 2000 == 0:
+                db.commit()
 
     db.commit()
 

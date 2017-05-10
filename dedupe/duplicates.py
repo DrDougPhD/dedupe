@@ -13,7 +13,8 @@ def _load_first_block(path, bytes_to_read=4096):
         first_block = f.read(bytes_to_read)
     return first_block
 
-
+# TODO: this could probably be sped up by looking at the first k bytes of
+#  each file
 class DuplicatePartitioner(object):
     def __init__(self, files, progress, index):
         assert len(files) > 1, 'Cannot partition a list of 1 file'
