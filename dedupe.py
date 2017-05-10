@@ -34,8 +34,7 @@ import sys
 import os
 import logging
 
-from hurry.filesize import si
-from hurry.filesize import size
+import humanfriendly
 
 import dedupe.utils
 logger = dedupe.setup_logger(name=__name__, verbosity=True)
@@ -99,15 +98,15 @@ def main(args):
     potential_savings_total = 0
     for potential_savings, partition in partitions_sorted_by_size_reduction:
         potential_savings_total += potential_savings
-        print('# {} in potential savings'.format(size(potential_savings,
-                                                      system=si)),
-              file=output)
+        print('# {} in potential savings'.format(
+            humanfriendly.format_size(potential_savings, binary=True)),
+            file=output)
         for f in partition:
             print('{0.size: >13}\t{0.hash}\t{0.path}'.format(f),
                   file=output)
 
     print('# {} in total potential savings'.format(
-        size(potential_savings_total, system=si)),
+        humanfriendly.format_size(potential_savings_total, binary=True)),
         file=output
     )
 
@@ -115,13 +114,19 @@ def main(args):
     # preserve one file (the first file) and delete all duplicates
     if args.removal_script:
         with open(args.removal_script, 'w') as script:
+            cumulative_potential_savings = 0
             for potential_savings, partition in\
                     partitions_sorted_by_size_reduction:
+
+                cumulative_potential_savings += potential_savings
 
                 preserved_file = partition.pop(0)
                 script.write('# Preserving {}\n'.format(preserved_file.path))
                 script.write('# {} in potential savings\n'.format(
-                    size(potential_savings, system=si)))
+                    humanfriendly.format_size(potential_savings, binary=True)))
+                script.write('# {} in cumulative savings\n'.format(
+                    humanfriendly.format_size(cumulative_potential_savings,
+                                              binary=True)))
 
                 for f in partition:
                     script.write('rm "{0.path}"\n'.format(f))
@@ -130,18 +135,24 @@ def main(args):
     # remove duplicates of a file and create a hard link
     if args.hardlink_script:
         with open(args.hardlink_script, 'w') as script:
+            cumulative_potential_savings = 0
             for potential_savings, partition in\
                     partitions_sorted_by_size_reduction:
+
+                cumulative_potential_savings += potential_savings
 
                 preserved_file = partition.pop(0)
                 script.write('# Preserving {}\n'.format(preserved_file.path))
                 script.write('# {} in potential savings\n'.format(
-                    size(potential_savings, system=si)))
+                    humanfriendly.format_size(potential_savings, binary=True)))
+                script.write('# {} in cumulative savings\n'.format(
+                    humanfriendly.format_size(cumulative_potential_savings,
+                                              binary=True)))
 
                 for f in partition:
                     # remove destination file and create hard link
                     script.write('ln --force "{preserved}"'
-                                 '"{duplicate}"'.format(
+                                 '"{duplicate}"\n'.format(
                         preserved=preserved_file.path,
                         duplicate=f.path
                     ))
