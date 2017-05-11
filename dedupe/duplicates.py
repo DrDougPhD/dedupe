@@ -61,10 +61,12 @@ def firstblock_repartition(filesize_partitions, k=512):
         # repartitioned_files_of_same_size = DuplicatePartitioner(
         #     files=files, progress=bar, index=i)
 
-        for firstblock, files in first_block_to_file_map.items():
-            repartitioned_files[(bytesize, firstblock)] = files
+        for firstblock, same_block_files in first_block_to_file_map.items():
+            repartitioned_files[(bytesize, firstblock)] = same_block_files
 
-        i += len(files)
+            bar.update(i)
+            i += len(files)
+
         del filesize_partitions[bytesize]
 
     # logger.debug('+' * 60)

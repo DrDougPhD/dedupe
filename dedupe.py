@@ -104,7 +104,7 @@ def main(args):
     if len(only_duplicates) == 0:
         logger.info('No duplicates found!')
         sys.exit(0)
-    
+
     # # add checksums to the database
     # logger.info('Adding checksums to database')
     # dedupe.db.update_with_checksums(checksum_partitioning, db)
