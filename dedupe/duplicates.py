@@ -94,6 +94,7 @@ def checksum_repartition(partitions):
 
         for file in files:
             checksum = file.checksum()
+            print('{0}\t{1}'.format(checksum, file.path))
             size = key[0]
             repartitioned_files[(size, checksum)].append(file)
 

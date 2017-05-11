@@ -70,7 +70,7 @@ import dedupe.duplicates
 def main(args):
     # partition files under the specified directories by their file sizes
     logger.info('Walking directory and collecting filenames and sizes')
-    size_to_file_map = dedupe.filesystem.find_file_sizes(within=args.paths)
+    partitioning = dedupe.filesystem.find_file_sizes(within=args.paths)
 
     # # store dictionary in a sqlite db
     # logger.info('Inserting files into database')
@@ -78,28 +78,28 @@ def main(args):
 
     # remove singleton partitions (files that have a unique file size)
     logger.info('Filtering out singleton size-partitions')
-    dedupe.utils.filter_singletons(size_to_file_map)
+    dedupe.utils.filter_singletons(partitioning)
 
-    # for each partition, check for duplicates within
-    logger.info('Finding duplicates within size-partitions by first 512 bytes')
-    firstblock_partitionining = dedupe.duplicates.firstblock_repartition(
-        filesize_partitions=size_to_file_map,
-        k=512
-    )
-
-    # filter out singleton partitions (again)
-    logger.info('Filtering out singleton firstblock-partitions')
-    only_duplicates = dedupe.utils.filter_singletons(firstblock_partitionining)
+    # # for each partition, check for duplicates within
+    # logger.info('Finding duplicates within size-partitions by first 512 bytes')
+    # partitioning = dedupe.duplicates.firstblock_repartition(
+    #     filesize_partitions=partitioning,
+    #     k=512
+    # )
+    #
+    # # filter out singleton partitions (again)
+    # logger.info('Filtering out singleton firstblock-partitions')
+    # only_duplicates = dedupe.utils.filter_singletons(partitioning)
 
     # for each partition, check for duplicates within using checksum
-    logger.info('Finding duplicates within size-partitions by first 512 bytes')
-    checksum_partitioning = dedupe.duplicates.checksum_repartition(
-        partitions=firstblock_partitionining,
+    logger.info('Finding duplicates with same checksum')
+    partitioning = dedupe.duplicates.checksum_repartition(
+        partitions=partitioning,
     )
 
     # filter out singleton partitions (again)
     logger.info('Filtering out singleton checksum-partitions')
-    only_duplicates = dedupe.utils.filter_singletons(checksum_partitioning)
+    only_duplicates = dedupe.utils.filter_singletons(partitioning)
 
     if len(only_duplicates) == 0:
         logger.info('No duplicates found!')
