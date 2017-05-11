@@ -75,6 +75,10 @@ class File(object):
     def _get_size(self, path):
         return os.path.getsize(path)
 
+    def first_block(self, k):
+        with open(self.path, 'rb') as f:
+            return f.read(k)
+
     def checksum(self):
         with open(self.path, 'rb') as f:
             while True:

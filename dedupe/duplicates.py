@@ -13,8 +13,7 @@ def _load_first_block(path, bytes_to_read=4096):
         first_block = f.read(bytes_to_read)
     return first_block
 
-# TODO: this could probably be sped up by looking at the first k bytes of
-#  each file
+
 class DuplicatePartitioner(object):
     def __init__(self, files, progress, index):
         assert len(files) > 1, 'Cannot partition a list of 1 file'
@@ -32,37 +31,79 @@ class DuplicatePartitioner(object):
             index += 1
 
 
-def repartition(filesize_partitions):
+def partition_by_first_block(files, k, progress, index):
+    firstblock_partitioning = collections.defaultdict(list)
+
+    for f in files:
+        block = f.first_block(k)
+
+    firstblock_partitioning[k].append(f)
+
+    return firstblock_partitioning
+
+
+def firstblock_repartition(filesize_partitions, k=512):
     logger.debug('-'*80)
-    logger.debug('Repartitioning by checksums')
+    logger.debug('Repartitioning by first byte')
 
     file_count = sum([len(files_matching_size)
                       for files_matching_size in filesize_partitions.values()])
     bar = progressbar.ProgressBar(max_value=file_count)
 
+    repartitioned_files = {}
+
+    i = 0
+    for bytesize in list(filesize_partitions):
+        files = filesize_partitions[bytesize]
+        first_block_to_file_map = partition_by_first_block(
+            files=files, k=k, progress=bar, index=i,
+        )
+        # repartitioned_files_of_same_size = DuplicatePartitioner(
+        #     files=files, progress=bar, index=i)
+
+        for firstblock, files in first_block_to_file_map.items():
+            repartitioned_files[(bytesize, firstblock)] = files
+
+        i += len(files)
+        del filesize_partitions[bytesize]
+
+    # logger.debug('+' * 60)
+    # logger.debug('New partitions:')
+    # for block, files in repartitioned_files.items():
+    #     logger.debug(pprint.pformat(files))
+    #     logger.debug('.'*50)
+
+    return repartitioned_files
+
+
+def checksum_repartition(partitions):
+    logger.debug('-'*80)
+    logger.debug('Repartitioning by checksum')
+
+    file_count = sum([len(files_matching_size)
+                      for files_matching_size in partitions.values()])
+    bar = progressbar.ProgressBar(max_value=file_count)
+
     repartitioned_files = collections.defaultdict(list)
 
     i = 0
-    for bytesize, files in filesize_partitions.items():
-        repartitioned_files_of_same_size = DuplicatePartitioner(
-            files=files, progress=bar, index=i)
-        # todo: if two files of different sizes share the same hash,
-        # then this will overwrite one of the groups!
+    for key in list(partitions):
+        files = partitions[key]
 
-        for checksum, files_matching_checksum in \
-            repartitioned_files_of_same_size.checksum_to_files.items():
+        for file in files:
+            checksum = file.checksum()
+            size = key[0]
+            repartitioned_files[(size, checksum)].append(file)
 
-            # TODO: this might merge files together with different file sizes
-            #repartitioned_files[(bytesize, checksum)].extend(
-            repartitioned_files[checksum].extend(
-                files_matching_checksum)
+            bar.update(i)
+            i += 1
 
-        i += len(files)
+        del partitions[key]
 
-    logger.debug('+' * 60)
-    logger.debug('New partitions:')
-    for block, files in repartitioned_files.items():
-        logger.debug(pprint.pformat(files))
-        logger.debug('.'*50)
+    # logger.debug('+' * 60)
+    # logger.debug('New partitions:')
+    # for block, files in repartitioned_files.items():
+    #     logger.debug(pprint.pformat(files))
+    #     logger.debug('.'*50)
 
     return repartitioned_files
