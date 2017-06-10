@@ -181,8 +181,9 @@ def main(args):
 
     print('='*80)
     print('# {} in total potential savings'.format(
-        size(potential_savings_total,
-             system=si)
+        humanfriendly.format_size(
+            potential_savings_total,
+            binary=True)
     ))
 
 
