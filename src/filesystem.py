@@ -2,7 +2,6 @@ import os
 import logging
 import collections
 import pprint
-
 import xxhash
 
 logger = logging.getLogger(__name__)
@@ -48,7 +47,7 @@ class FileFinder(object):
         for directory, _, filenames in os.walk(self.directory_tree_root):
             for f in filenames:
                 path = os.path.join(directory, f)
-                logger.info('File:\t{}'.format(path))
+                logger.debug('File:\t{}'.format(path))
                 yield path
 
     def find(self):
