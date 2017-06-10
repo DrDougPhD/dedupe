@@ -29,7 +29,7 @@ def filter_singletons(partitions):
     logger.debug('Singleton filtering')
     for key, values in partitions.items():
         logger.debug('{0: >14} bytes | {1: >5} items'.format(
-            key, len(values)))
+            key[0], len(values)))
         logger.debug(pprint.pformat(values))
 
     return partitions

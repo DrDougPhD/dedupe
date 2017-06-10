@@ -26,7 +26,7 @@ def find_file_sizes(within):
         files_within_dir = finder.find()
 
         for filesize, files_matching_size in files_within_dir.items():
-            found_files[filesize].extend(files_matching_size)
+            found_files[(filesize,)].extend(files_matching_size)
 
     logger.info('Search complete.')
 
