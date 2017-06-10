@@ -55,16 +55,18 @@ def main(args):
     filesizes = src.filesystem.find_file_sizes(within=args.paths)
 
     # store dictionary in a sqlite db
-    db = src.db.insert_files(filesizes, into=args.db)
+    # db = src.db.insert_files(filesizes, into=args.db)
 
     # remove singleton partitions (files that have a unique file size)
     potential_duplicates = src.utils.filter_singletons(filesizes)
 
     # for each partition, check for duplicates within
-    duplicate_partitions = src.duplicates.repartition(filesize_partitions=potential_duplicates)
+    duplicate_partitions = src.duplicates.repartition(
+        filesize_partitions=potential_duplicates
+    )
 
-    # add checksums to the database
-    src.db.update_with_checksums(duplicate_partitions, db)
+    # # add checksums to the database
+    # src.db.update_with_checksums(duplicate_partitions, db)
 
     # filter out singleton partitions (again)
     only_duplicates = src.utils.filter_singletons(duplicate_partitions)
@@ -85,7 +87,11 @@ def main(args):
             print('{0.size}\t{0.hash}\t{0.path}'.format(f))
 
     print('='*80)
-    print('# {} in total potential savings'.format(size(potential_savings_total, system=si)))
+    print('# {} in total potential savings'.format(
+        size(potential_savings_total,
+             system=si)
+    ))
+
 
 def existing_abspath(path):
     if os.path.exists(path):
