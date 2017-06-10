@@ -1,5 +1,6 @@
 import os
 
+import progressbar
 from sqlalchemy import BigInteger
 from sqlalchemy import Binary
 from sqlalchemy import create_engine
@@ -28,29 +29,57 @@ def insert_files(filesizes, into):
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    for filesize in filesizes:
-        logger.debug('Adding {0}-byte files ({1} files)'.format(filesize,
-                                                                len(filesizes[filesize])))
-        for file in filesizes[filesize]:
+    file_count = sum([len(files_matching_size)
+                      for files_matching_size in filesizes.values()])
+    bar = progressbar.ProgressBar(max_value=file_count)
+
+    i = 0
+    for filesize, files_matching_size in filesizes.items():
+        logger.debug('Adding {0}-byte files ({1} files)'.format(
+            filesize,
+            len(files_matching_size)))
+
+        for file in files_matching_size:
             possibly_non_existent_record = session.query(FileInformation)\
                                                   .filter_by(path=file.path)\
                                                   .first()
+
             if possibly_non_existent_record is None:
                 session.add(FileInformation(path=file.path, bytesize=filesize))
+
             else:
                 if possibly_non_existent_record.bytesize != filesize:
                     possibly_non_existent_record.bytesize = filesize
 
+            if i % 2000 == 0:
+                session.commit()
+
+            bar.update(i)
+            i += 1
+
     session.commit()
     return session
 
+
 def update_with_checksums(partitions, db):
+
+    file_count = sum([len(files_with_checksum)
+                      for files_with_checksum in partitions.values()])
+
+    bar = progressbar.ProgressBar(max_value=file_count)
+    i = 0
     for checksum, files in partitions.items():
         for f in files:
             current_record = db.query(FileInformation) \
                                .filter_by(path=f.path) \
                                .first()
             current_record.checksum = checksum
+
+            bar.update(i)
+            i += 1
+
+            if i % 2000 == 0:
+                db.commit()
 
     db.commit()
 
@@ -67,6 +96,7 @@ class FileInformation(Base):
         return "<File(size={size}, path={path})>".format(
             size=self.bytesize, path=self.path
         )
+
 
 if __name__ == '__main__':
     engine = create_engine('sqlite:///:memory:', echo=True)
