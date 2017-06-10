@@ -48,7 +48,13 @@ class FileFinder(object):
     def _next_filepath(self):
         logger.info('-'*75)
         logger.info('Iterating through "{}"'.format(self.directory_tree_root))
+
+        previous_line_length = 0
         for directory, _, filenames in os.walk(self.directory_tree_root):
+            if len(directory) <= 80:
+                print(directory.ljust(previous_line_length), end='\r')
+                previous_line_length = len(directory)
+
             for f in filenames:
                 path = os.path.join(directory, f)
                 if os.path.islink(path):
