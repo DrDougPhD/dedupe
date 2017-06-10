@@ -82,16 +82,15 @@ def main(args):
     logger.info('Filtering out singleton size-partitions')
     dedupe.utils.filter_singletons(partitioning)
 
-    # # for each partition, check for duplicates within
-    # logger.info('Finding duplicates within size-partitions by first 512 bytes')
-    # partitioning = dedupe.duplicates.firstblock_repartition(
-    #     filesize_partitions=partitioning,
-    #     k=512
-    # )
-    #
-    # # filter out singleton partitions (again)
-    # logger.info('Filtering out singleton firstblock-partitions')
-    # only_duplicates = dedupe.utils.filter_singletons(partitioning)
+    # for each partition, check for duplicates within
+    partitioning = dedupe.duplicates.firstblock_repartition(
+        filesize_partitions=partitioning,
+        k=512
+    )
+
+    # filter out singleton partitions (again)
+    logger.info('Filtering out singleton firstblock-partitions')
+    partitioning = dedupe.utils.filter_singletons(partitioning)
 
     # for each partition, check for duplicates within using checksum
     logger.info('Finding duplicates with same checksum')
@@ -121,6 +120,7 @@ def main(args):
 
     partitions_sorted_by_size_reduction.sort(key=lambda x: x[0], reverse=True)
 
+    sys.exit(0)
     logger.info('Finalizing analysis')
 
     # if a file was specified to write the report to, then write it there.

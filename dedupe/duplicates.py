@@ -36,13 +36,13 @@ def partition_by_first_block(files, k, progress, index):
 
     for f in files:
         block = f.first_block(k)
-
-    firstblock_partitioning[k].append(f)
+        firstblock_partitioning[block].append(f)
 
     return firstblock_partitioning
 
 
 def firstblock_repartition(filesize_partitions, k=512):
+    logger.info('Finding duplicates within size-partitions by first 512 bytes')
     logger.debug('-'*80)
     logger.debug('Repartitioning by first byte')
 
@@ -62,13 +62,14 @@ def firstblock_repartition(filesize_partitions, k=512):
         #     files=files, progress=bar, index=i)
 
         for firstblock, same_block_files in first_block_to_file_map.items():
-            repartitioned_files[(bytesize, firstblock)] = same_block_files
+            repartitioned_files[(bytesize[0], firstblock)] = same_block_files
 
             bar.update(i)
-            i += len(files)
+            i += len(same_block_files)
 
         del filesize_partitions[bytesize]
 
+    bar.update(i)
     # logger.debug('+' * 60)
     # logger.debug('New partitions:')
     # for block, files in repartitioned_files.items():
