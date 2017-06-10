@@ -70,7 +70,9 @@ import dedupe.duplicates
 def main(args):
     # partition files under the specified directories by their file sizes
     logger.info('Walking directory and collecting filenames and sizes')
-    partitioning = dedupe.filesystem.find_file_sizes(within=args.paths)
+    partitioning = dedupe.filesystem.find_file_sizes(
+        within=args.paths,
+        min_file_size=args.min_file_size)
 
     # # store dictionary in a sqlite db
     # logger.info('Inserting files into database')
@@ -224,6 +226,11 @@ def get_arguments():
                         help='create script to remove duplicate files and '
                              'convert them to hard links. Linux only. '
                              '(default: no script)')
+    parser.add_argument('-m', '--minimum-file-size',dest='min_file_size',
+                        type=humanfriendly.parse_size, default=0,
+                        help='only consider files that are larger than this '
+                             'threshold (default: 0 - consider all files)')
+
     # TODO: only remove duplicates up to a point where a certain amount of
     # space is available from removal
     parser.add_argument('paths', metavar='PATH', nargs='+',

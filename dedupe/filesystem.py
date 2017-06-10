@@ -8,7 +8,7 @@ import xxhash
 logger = logging.getLogger(__name__)
 
 
-def find_file_sizes(within):
+def find_file_sizes(within, min_file_size):
     if isinstance(within, str):
         within = [within]
 
@@ -23,7 +23,7 @@ def find_file_sizes(within):
     found_files = collections.defaultdict(list)
     for search_directory in within:
         finder = FileFinder(within=search_directory)
-        files_within_dir = finder.find()
+        files_within_dir = finder.find(min_file_size=min_file_size)
 
         for filesize, files_matching_size in files_within_dir.items():
             found_files[(filesize,)].extend(files_matching_size)
@@ -45,7 +45,7 @@ class FileFinder(object):
         self.directory_tree_root = within
         self.filesizes_to_files = collections.defaultdict(list)
 
-    def _next_filepath(self):
+    def _next_filepath(self, min_file_size):
         logger.info('-'*75)
         logger.info('Iterating through "{}"'.format(self.directory_tree_root))
 
@@ -60,11 +60,15 @@ class FileFinder(object):
                 if os.path.islink(path):
                     continue
 
-                yield path
+                filesize = os.path.getsize(path)
+                if filesize < min_file_size:
+                    continue
 
-    def find(self):
-        for filepath in self._next_filepath():
-            file = File(path=filepath)
+                yield path, filesize
+
+    def find(self, min_file_size):
+        for filepath, filesize in self._next_filepath(min_file_size):
+            file = File(path=filepath, filesize=filesize)
             logger.debug('{0: >15} -> "{1}"'.format(file.size, file.path))
             self.filesizes_to_files[file.size]\
                 .append(file)
@@ -72,14 +76,11 @@ class FileFinder(object):
         return self.filesizes_to_files
 
 class File(object):
-    def __init__(self, path):
+    def __init__(self, path, filesize):
         self.path = path
-        self.size = self._get_size(path)
+        self.size = filesize
         self.hasher = xxhash.xxh64()
         self.hash = None
-
-    def _get_size(self, path):
-        return os.path.getsize(path)
 
     def first_block(self, k):
         with open(self.path, 'rb') as f:
