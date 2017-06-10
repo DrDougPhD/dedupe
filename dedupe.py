@@ -161,8 +161,9 @@ def main(args):
                     humanfriendly.format_size(cumulative_potential_savings,
                                               binary=True)))
 
-                for f in partition:
-                    script.write('# rm "{0.path}"\n'.format(f))
+                script.write('# rm "{0.path}"\n'.format(partition[0]))
+                for f in partition[1:]:
+                    script.write('rm "{0.path}"\n'.format(f))
                     
                 script.write('\n')
 
